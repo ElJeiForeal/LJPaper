@@ -40,15 +40,32 @@ rm ljpaper
 
 ------------------------------------- How to use -------------------------------------
 
+# catalog
 open any terminal and run
-```ljpaper -catalog```
 
-inside the pygame display, look above, you should see a **textbox. simply type in the directory of the folder ur pictures are in** and press enter.
+```
+ljpaper -catalog
+```
+
+inside the pygame display
+
+you should see a **textbox**. 
+
+simply type in the directory of the folder ur pictures are in** and press enter.
+
 
 this should load all pictures inside the folder.
+
 **clicking any pictures will change ur wallpaper**
+
 *use up and down arrow key to scroll up and down the pictures*
 
+# setmem
 once ur device starts up, you can run
-```ljpaper -setmem```
-this will change ur wallpaper to whatever wallpaper you had in the last session. **--ONLY IF YOU SET UR WALLPAPER USING ljpaper -catalog BEFORE**
+```
+ljpaper -setmem
+```
+
+this will change ur wallpaper to whatever wallpaper you had in the last session. 
+
+**--ONLY IF YOU SET UR WALLPAPER USING ljpaper -catalog BEFORE**
