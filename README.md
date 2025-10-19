@@ -48,12 +48,14 @@ ljpaper -catalog
 ```
 
 this should open up a pygame display.
+
 inside the pygame display you should see a **textbox**. 
+
 
 **simply type in the directory of the folder ur pictures are in** and press enter.
 
-
 this should load all pictures inside the folder.
+
 
 **clicking any pictures will change ur wallpaper**
 
