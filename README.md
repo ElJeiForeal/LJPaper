@@ -13,7 +13,7 @@ sudo pacman -S hyprpaper
 
 1) downlod **ljpaper** and put it inside any folder
    
-3) open terminal, go inside the directory ur file is in and make it executable
+3) open terminal, go inside the file's directory and make the file executable
    ```cd ~/Downloads```
    ```chmod +x ljpaper```
    
