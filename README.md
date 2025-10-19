@@ -11,16 +11,16 @@ sudo pacman -S hyprpaper
 ------------------------------------- How to set it up -------------------------------------
 
 
-1) downlod **ljpaper** and put it inside any folder
+>1) downlod **ljpaper** and put it inside any folder
    
-3) open terminal, go inside the file's directory and make the file executable
+>2) open terminal, go inside the file's directory and make the file executable
    ```cd ~/Downloads```
    ```chmod +x ljpaper```
    
-4) copy ljpaper to bin
+>3) copy ljpaper to bin
    ```cp ljpaper /usr/local/bin/ljpaper```
    
-5) delete the downloaded ljpaper
+>4) delete the downloaded ljpaper
    ```rm ljpaper```
    
 You're ready to go!
