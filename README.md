@@ -51,11 +51,13 @@ this should open up a pygame display.
 
 inside the pygame display you should see a **textbox**. 
 
+--------
 
 **simply type in the directory of the folder ur pictures are in** and press enter.
 
 this should load all pictures inside the folder.
 
+--------
 
 **clicking any picture will change ur wallpaper**
 
@@ -83,6 +85,10 @@ cd ~/.config/ljpaper
 
 this will open up a folder where after running **ls** command, you should see
 two text files. **LJPaper.conf** and **LJPaper.Mem**
+
+--------
+it should look something like this
+--------
 ```
 ls
 ```
@@ -91,11 +97,16 @@ ls
 
 **if you dont see these files please run ```ljpaper -setmem``` command**
 
-the one we are interested in is the **LJPaper.conf**, we wont be touching the **.Mem** file.
+--------
+
+the file that we are interested in is the **LJPaper.conf**, we wont be touching the **.Mem** file.
 
 run **```nano LJPaper.conf```** command to check the content of the config file.
 
+--------
+
 the formatting in the file is as following:
+**
 
 --**screen width**,**screen height**
  
