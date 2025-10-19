@@ -1,8 +1,8 @@
 # LJPaper
 arch linux, hyprpaper wallpaper manager
 
-MUST HAVE:
-hyprpaper
+-------------------------------------MUST HAVE-------------------------------------
+>hyprpaper
 
 ```
 sudo pacman -S hyprpaper
