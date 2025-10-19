@@ -1,0 +1,539 @@
+#!/usr/bin/env python3
+
+import os
+
+CONFIG_FOLDER_PARENT_DIR = "~/.config"
+EXPANDED = os.path.expanduser(CONFIG_FOLDER_PARENT_DIR)
+CONFIG_FOLDER = os.path.join(EXPANDED, "ljpaper")
+
+os.makedirs(CONFIG_FOLDER, exist_ok=True)
+
+
+mem_file = os.path.join(CONFIG_FOLDER, "LJPaper.Mem")
+conf_file = os.path.join(CONFIG_FOLDER, "LJPaper.conf")
+
+if not os.path.exists(mem_file):
+    with open(mem_file, "w") as f:
+        f.write("")
+if not os.path.exists(conf_file):
+    with open(conf_file, "w") as f:
+        f.write("900,500\n4\n9\n2\n.pnh,.jpg")
+
+
+
+
+import sys
+import time
+import pygame
+import subprocess
+
+
+
+def IsPosModeNotValid(positionmode):
+		return positionmode not in {"center", "topleft", "bottomright"}
+
+class LJG():
+
+	class Frame():
+		def __init__(self, size, position, framecolor, positionmode : str = "topleft", HasBorder : bool = True ,bordersize : float = 10.0, bordercolor : tuple = (0,0,0)):
+			if IsPosModeNotValid(positionmode):
+				raise ValueError(f"Invalid position mode: {positionmode}")
+
+			self.rect = pygame.Rect(0,0, size[0], size[1])
+
+			if positionmode == "center":
+				self.rect.center = position
+
+			if positionmode == "topleft":
+				self.rect.topleft = position
+
+			if positionmode == "bottomright":
+				self.rect.bottomright = position
+
+			
+
+			self.framecolor = framecolor
+
+			self.bordersize = bordersize
+
+			self.bordercolor = bordercolor
+
+			self.HasBorder = HasBorder
+
+
+
+		def render(self, screen):
+			if self.HasBorder:
+				borderRect = self.rect.inflate(self.bordersize, self.bordersize)
+				pygame.draw.rect(screen, self.bordercolor, borderRect)
+
+			pygame.draw.rect(screen, self.framecolor, self.rect)
+
+
+
+	class TextLabel():
+		def __init__(self, position, text, frame: object = None):
+
+			self.position = position
+
+			self.text = text
+
+
+
+			self.frame = frame
+
+		
+
+		def render(self, screen, font, textcolor, textPosMode: str = "topleft"):
+
+			if IsPosModeNotValid(textPosMode):
+
+				raise ValueError(f"Invalid position mode: {textPosMode}")
+
+			
+
+			renderedfont = font.render(self.text, True, textcolor)
+
+			txtrect = renderedfont.get_rect()
+
+			
+
+		
+
+			if self.frame:
+
+				self.frame.render(screen)
+
+
+
+				if textPosMode == "topleft":
+
+					txtrect.topleft = self.frame.rect.topleft
+
+				elif textPosMode == "center":
+
+					txtrect.center = self.frame.rect.center
+
+				elif textPosMode == "bottomright":
+
+					txtrect.bottomright = self.frame.rect.bottomright
+
+
+
+			else:
+
+
+
+				if textPosMode == "topleft":
+
+					txtrect.topleft = self.position
+
+				elif textPosMode == "center":
+
+					txtrect.center = self.position
+
+				elif textPosMode == "bottomright":
+
+					txtrect.bottomright = self.position
+
+				
+
+			screen.blit(renderedfont, txtrect.topleft)
+
+
+
+
+
+	class Button():
+
+		def __init__(self, text, frame):
+
+			self.text = text
+
+			self.frame = frame
+
+			self.rect = frame.rect
+
+		
+
+		def render(self, screen, font, textcolor, textPosMode: str = "topleft"):
+
+			if IsPosModeNotValid(textPosMode):
+
+				raise ValueError(f"Invalid position mode: {textPosMode}")
+
+			
+
+			renderedfont = font.render(self.text, True, textcolor)
+
+			txtrect = renderedfont.get_rect()
+
+			
+
+		
+
+			self.frame.render(screen)
+
+
+
+			if textPosMode == "topleft":
+
+				txtrect.topleft = self.frame.rect.topleft
+
+			elif textPosMode == "center":
+
+				txtrect.center = self.frame.rect.center
+
+			elif textPosMode == "bottomright":
+
+				txtrect.bottomright = self.frame.rect.bottomright
+
+
+
+			screen.blit(renderedfont, txtrect.topleft)
+
+
+
+		def clicked(self, event, mousebutton:int = 1):
+
+			if event.type == pygame.MOUSEBUTTONDOWN:
+
+				if event.button == mousebutton:
+
+					return self.rect.collidepoint(pygame.mouse.get_pos())
+
+			return False
+
+		
+
+
+
+	class TextBox():
+		def __init__(self, frame, max_characters, EmptyText :str = "", EmptyTextColor : tuple = (128, 128, 128), clearOnFocus :bool = True):
+			self.EmptyTextColor = EmptyTextColor
+			self.EmptyText = EmptyText
+			self.frame = frame
+			self.rect = frame.rect
+			self.max_characters = max_characters
+			self.clearOnFocus = clearOnFocus
+
+			self.LastKey = ""
+
+			self.text = ""
+
+			self.focused = False
+
+		
+
+		def render(self, screen, font, textcolor, textPosMode: str = "topleft"):
+			if IsPosModeNotValid(textPosMode):
+				raise ValueError(f"Invalid position mode: {textPosMode}")
+
+			texttorender = (self.text != "" and self.text) or self.EmptyText
+			colortorender = (self.text == "" and self.EmptyTextColor) or textcolor
+
+			renderedfont = font.render(texttorender, True, colortorender)
+			txtrect = renderedfont.get_rect()
+
+			self.frame.render(screen)
+
+			if textPosMode == "topleft":
+				txtrect.topleft = self.frame.rect.topleft
+			elif textPosMode == "center":
+				txtrect.center = self.frame.rect.center
+			elif textPosMode == "bottomright":
+				txtrect.bottomright = self.frame.rect.bottomright
+
+			screen.blit(renderedfont, txtrect.topleft)
+
+		def CheckIfFocused(self, event, mousebutton:int = 1):
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				if event.button == mousebutton:
+					if self.rect.collidepoint(pygame.mouse.get_pos()):
+						self.focused = True
+						if self.clearOnFocus:
+							self.text = ""
+						return
+				self.focused = False
+				return
+
+		
+
+		def type(self, event, focusNeeded : bool = True, UnFocusOnEnter : bool = True):
+			if event.type == pygame.KEYDOWN:
+				if (not self.focused) and focusNeeded:
+					return
+
+				char = event.unicode
+
+				if event.key == pygame.K_BACKSPACE:
+					self.text = self.text[:-1]
+					self.LastKey = "backspace"
+					return
+
+				if event.key == pygame.K_RETURN:
+					self.focused = False or (not UnFocusOnEnter)
+					self.LastKey = "enter"
+					return
+
+
+
+				if len(self.text) < self.max_characters:
+					self.text += char
+					self.LastKey = char
+
+		def activate(self,event, mousebutton:int = 1, focusNeeded : bool = True, UnFocusOnEnter : bool = True):
+			self.CheckIfFocused(event, mousebutton)
+			self.type(event, focusNeeded, UnFocusOnEnter)
+
+		def onKey(self, key: str = "enter", callback=None):
+			if self.LastKey == key:
+				self.LastKey = ""
+
+				if callback:
+					callback()
+
+				return True
+
+			return False
+
+class HPR():
+	def SRCommand(command):
+		with open('/dev/null', 'w') as devnull:
+				subprocess.Popen(command, stdout=devnull, stderr=devnull, shell=True)
+
+	def is_running():
+		try:
+			result = subprocess.run(['pgrep', 'hyprpaper'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+			if result.stdout:
+				return True
+			else:
+				return False
+		except Exception as e:
+			print(f"Error occurred: {e}")
+			return False
+
+	def open_hyprpaper():
+		if not HPR.is_running():
+				HPR.SRCommand('hyprpaper')
+
+	def Change_WallPaper(paperdir):
+		command = 'hyprctl hyprpaper reload , "' + paperdir + '"'
+		HPR.SRCommand(command)
+
+def setmem():
+	HPR.open_hyprpaper()
+
+	while not HPR.is_running():
+			None
+
+	with open(mem_file, "r") as file:
+			Info = file.read()
+			if type(Info) == str:
+					if os.path.exists(Info):
+							HPR.Change_WallPaper(Info)
+
+def catalog():
+	# CONFIG
+
+	fps = 120
+	clock = pygame.time.Clock()
+	pygame.init()
+
+	# CUSTOMIZABLES
+	screenSize = screenWidth, screenHeight = (600,600)
+	RATIO = 13
+	ERROR_MSG_COOLDOWN = 1
+	SUPPORTEDTYPES = ['png', 'jpg']
+	ROW_SIZE = 2
+	ROW_IMAGE_SIZE = 300
+
+	with open(conf_file, "r") as Config:
+		CONFIG  = Config.read().split()
+		
+		SIZES = CONFIG[0].split(',')
+		screenSize = screenWidth, screenHeight = (int(SIZES[0]), int(SIZES[1]))
+		ROW_SIZE = int(CONFIG[1])
+		ROW_IMAGE_SIZE = int(screenWidth/ROW_SIZE)
+		RATIO = int(CONFIG[2])
+		ERROR_MSG_COOLDOWN = int(CONFIG[3])
+
+		SUPPORTEDTYPES = CONFIG[4].split(',')
+
+	COL_IMAGE_SIZE = int(3*screenHeight / (RATIO-1))
+
+	# SCREEN
+	screen = pygame.display.set_mode(screenSize)
+
+	# COLORS AND FONTS
+	smallFont = pygame.font.Font(None, int(screenHeight/(RATIO *3/2)))
+	bigFont = pygame.font.Font(None, int(screenHeight/(RATIO)))
+
+	BLACK = (0,0,0)
+	WHITE = (255,255,255)
+	GRAY = (125,125,125)
+	DARK_GRAY = (80,80,80)
+	DARK_GREEN = (30,200,30)
+	RED = (255,20,20)
+
+	# FUNCTIONS
+
+	def Load_Images(Directory):
+		returning = {}
+		returning_rect = {}
+		added = 0
+
+		children = os.listdir(Directory)
+		
+		for child in children:
+			full_path = os.path.join(Directory, child)
+			if os.path.isfile(full_path):
+				_, extension = os.path.splitext(child)
+				if extension in SUPPORTEDTYPES:
+					added +=1
+					Col = (added-1) // ROW_SIZE
+					Row = (added-1) % ROW_SIZE
+					
+					if not Col in returning:
+						returning[Col] = {}
+						returning_rect[Col] = {}
+					
+					img = pygame.image.load(full_path).convert()
+					img = pygame.transform.scale(img, (ROW_IMAGE_SIZE, COL_IMAGE_SIZE))
+
+					returning[Col][Row] = (full_path, img)
+					returning_rect[Col][Row] = pygame.Rect(0,0,ROW_IMAGE_SIZE, COL_IMAGE_SIZE)				
+
+			else:
+				continue
+
+		return (returning,returning_rect)
+
+	def Blit_Images(screen, ImagePaths, YOffset):
+		for Col in ImagePaths:
+			for Row in ImagePaths[Col]:
+				IMGPATH = ImagePaths[Col][Row][0]		
+				final_img = ImagePaths[Col][Row][1]
+				Pos = PosX, PosY = ROW_IMAGE_SIZE*Row, (COL_IMAGE_SIZE*Col) + YOffset
+				
+				screen.blit(final_img, Pos) 
+
+	def Check_Collision(Rects, MousePos, YOffset):
+		for Col in Rects:
+			for Row in Rects[Col]:
+				rect = Rects[Col][Row]
+				
+				YPos = Col*COL_IMAGE_SIZE + YOffset
+				XPos = Row*ROW_IMAGE_SIZE
+				
+				rect.topleft = (XPos,YPos)
+
+				if rect.collidepoint(MousePos):
+					return (Col, Row)
+		return None		
+
+	# MAIN STUFF
+	CURRENT_DIRECTORY = ""
+	LOADED_IMAGES = None
+	LOADED_IMAGE_RECTS = None
+
+	D_BOX_FRAME = LJG.Frame((screenWidth, screenHeight/RATIO), (0,0), GRAY, bordercolor = DARK_GRAY)
+	D_TEXTBOX = LJG.TextBox(D_BOX_FRAME, 9999, EmptyText = "Enter the directory of the folder with images", EmptyTextColor = DARK_GRAY ,clearOnFocus = False)
+
+	IMAGE_LOAD_OFFSET = D_BOX_FRAME.bordersize
+
+	LAST_ERROR_TIME = 0
+	ERROR_MSG_LABEL = LJG.TextLabel((screenWidth/2, screenHeight/2), "")
+
+	# MAIN LOOP
+	HPR.open_hyprpaper()
+	CameraY = 0
+	#
+	running = True
+	Tick = 0
+	while running:
+		Tick += 1
+
+		#
+		MousePos = pygame.mouse.get_pos()
+		
+		# LOOP BRAIN
+
+		if LAST_ERROR_TIME + ERROR_MSG_COOLDOWN <  time.time():
+			ERROR_MSG_LABEL.text = ""
+
+		# EVENTS
+
+		if D_TEXTBOX.onKey():
+			CURRENT_DIRECTORY1 = os.path.expanduser(D_TEXTBOX.text)
+			if not os.path.isdir(CURRENT_DIRECTORY1):
+				ERROR_MSG_LABEL.text = "Directory not found"
+				LAST_ERROR_TIME = time.time()
+			else:
+				CURRENT_DIRECTORY = CURRENT_DIRECTORY1
+				ERROR_MSG_LABEL.text = "Directory set"
+				LAST_ERROR_TIME = time.time()
+				CameraY = 0			
+				
+				LOADED_IMG_INFO = Load_Images(CURRENT_DIRECTORY)
+				LOADED_IMAGES = LOADED_IMG_INFO[0]
+				LOADED_IMAGE_RECTS = LOADED_IMG_INFO[1]	
+
+
+		for event in pygame.event.get():
+			D_TEXTBOX.activate(event, UnFocusOnEnter = False)
+
+			if event.type == pygame.QUIT:
+				running = False
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_UP:
+					CameraY -= COL_IMAGE_SIZE
+				if event.key == pygame.K_DOWN:
+					CameraY += COL_IMAGE_SIZE
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				if event.button == 1:
+					if LOADED_IMAGE_RECTS != None:
+						INFO = Check_Collision(LOADED_IMAGE_RECTS, MousePos, int(IMAGE_LOAD_OFFSET/2) + int(screenHeight/RATIO)-CameraY)
+						if INFO != None:
+							CCOL, CROW = INFO
+							imageInfo = LOADED_IMAGES[CCOL][CROW]
+							path = imageInfo[0]
+							HPR.Change_WallPaper(path)
+							
+							with open(mem_file, "w") as file:
+								file.write(path)
+		# DISPLAYING
+
+		screen.fill(BLACK)
+
+		if LOADED_IMAGES != None:
+			Blit_Images(screen, LOADED_IMAGES, int(IMAGE_LOAD_OFFSET/2) + int(screenHeight/RATIO)- CameraY)
+		
+		D_TEXTBOX.render(screen, smallFont, DARK_GREEN, textPosMode = "center")
+		ERROR_MSG_LABEL.render(screen, bigFont, RED, textPosMode = "center")
+
+		pygame.display.flip()
+		clock.tick(fps)
+
+	pygame.quit()
+	sys.exit()
+
+
+def main():
+	if len(sys.argv) < 2:
+		print("Usage: ljpaper [option]")
+		print("Options:")
+		print("  -setmem   Run wallpaper setter")
+		print("  -catalog  Generate or show catalog")
+		sys.exit(1)
+
+	arg = sys.argv[1].lower()
+	if arg == "-setmem":
+		setmem()
+	elif arg == "-catalog":
+		catalog()
+	else:
+		print(f"Unknown option: {arg}")
+
+main()
+
