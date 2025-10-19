@@ -8,7 +8,9 @@ hyprpaper
 sudo pacman -S hyprpaper
 ```
 
--- How to set it up ---
+------------------------------------- How to set it up -------------------------------------
+
+
 1) downlod **ljpaper** and put it inside any folder
    
 3) open terminal, go inside the directory ur file is in and make it executable
@@ -23,7 +25,10 @@ sudo pacman -S hyprpaper
    
 You're ready to go!
 
---- How to use ---
+
+
+------------------------------------- How to use -------------------------------------
+
 open any terminal and run
 ```ljpaper -catalog```
 
