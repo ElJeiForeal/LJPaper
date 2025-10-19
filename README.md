@@ -15,15 +15,24 @@ sudo pacman -S hyprpaper
    
 >2) open terminal, go inside the file's directory and make the file executable
 
-   ```cd ~/Downloads```
-   
-   ```chmod +x ljpaper```
+```
+cd ~/Downloads
+```
+```
+chmod +x ljpaper
+```
 
 >3) copy ljpaper to bin
-   ```cp ljpaper /usr/local/bin/ljpaper```
+
+```
+cp ljpaper /usr/local/bin/ljpaper
+```
    
 >4) delete the downloaded ljpaper
-   ```rm ljpaper```
+
+```
+rm ljpaper
+```
    
 You're ready to go!
 
