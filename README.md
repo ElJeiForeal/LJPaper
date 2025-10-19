@@ -97,8 +97,12 @@ run **```nano LJPaper.conf```** command to check the content of the config file.
 
 the formatting in the file is as following:
 
-> screen width,screen height
-> **images per column**
-> **ratio** *(this will affect the size of the texbox aswell as images)*
-> **Error msg duration** *(in seconds, must be an int)*
-> **.image file type N1**,**.image file type N2** ... ,**.image file type Nk**
+--**screen width**,**screen height**
+ 
+ --**images per column**
+ 
+ --**ratio** *(this will affect the size of the texbox aswell as images)*
+ 
+ --**Error msg duration** *(in seconds, must be an int)*
+ 
+ --**.image file type N1**,**.image file type N2** ... ,**.image file type Nk**
