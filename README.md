@@ -14,9 +14,11 @@ sudo pacman -S hyprpaper
 >1) downlod **ljpaper** and put it inside any folder
    
 >2) open terminal, go inside the file's directory and make the file executable
+
    ```cd ~/Downloads```
-   ```chmod +x ljpaper```
    
+   ```chmod +x ljpaper```
+
 >3) copy ljpaper to bin
    ```cp ljpaper /usr/local/bin/ljpaper```
    
